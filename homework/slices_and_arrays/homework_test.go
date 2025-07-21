@@ -11,35 +11,76 @@ import (
 
 type CircularQueue struct {
 	values []int
-	// need to implement
+	size   int
+	front  int
+	rear   int
 }
 
 func NewCircularQueue(size int) CircularQueue {
-	return CircularQueue{} // need to implement
+	return CircularQueue{
+		values: make([]int, size),
+		front:  -1,
+		rear:   -1,
+		size:   size,
+	}
 }
 
 func (q *CircularQueue) Push(value int) bool {
-	return false // need to implement
+	if q.Full() {
+		return false
+	}
+	if q.front == -1 {
+		q.front++
+	}
+	q.rear = (q.rear + 1) % q.size
+	q.values[q.rear] = value
+
+	return true
 }
 
 func (q *CircularQueue) Pop() bool {
-	return false // need to implement
+	if q.Empty() {
+		return false
+	}
+	if q.front == q.rear {
+		q.front, q.rear = -1, -1
+		return true
+	}
+
+	q.front = (q.front + 1) % q.size
+
+	return true
 }
 
 func (q *CircularQueue) Front() int {
-	return -1 // need to implement
+	if q.Empty() {
+		return -1
+	}
+	return q.values[q.front]
 }
 
 func (q *CircularQueue) Back() int {
-	return -1 // need to implement
+	if q.Empty() {
+		return -1
+	}
+	return q.values[q.rear]
 }
 
 func (q *CircularQueue) Empty() bool {
-	return false // need to implement
+	if q.front == -1 {
+		return true
+	}
+	return false
 }
 
 func (q *CircularQueue) Full() bool {
-	return false // need to implement
+	if q.front == 0 && q.rear == q.size+1 {
+		return true
+	}
+	if q.front == (q.rear+1)%q.size {
+		return true
+	}
+	return false
 }
 
 func TestCircularQueue(t *testing.T) {
@@ -83,4 +124,53 @@ func TestCircularQueue(t *testing.T) {
 
 	assert.True(t, queue.Empty())
 	assert.False(t, queue.Full())
+
+}
+
+func TestCircularSecondQueue(t *testing.T) {
+	const secondQueueSize = 5
+	secondQueue := NewCircularQueue(secondQueueSize)
+
+	assert.True(t, secondQueue.Push(5))
+	assert.True(t, secondQueue.Push(4))
+	assert.True(t, secondQueue.Push(3))
+
+	assert.True(t, secondQueue.Pop())
+
+	assert.True(t, reflect.DeepEqual([]int{5, 4, 3, 0, 0}, secondQueue.values))
+
+	assert.True(t, secondQueue.Push(5))
+	assert.True(t, secondQueue.Push(7))
+	assert.True(t, secondQueue.Push(8))
+
+	assert.False(t, secondQueue.Push(0))
+
+	assert.True(t, reflect.DeepEqual([]int{8, 4, 3, 5, 7}, secondQueue.values))
+
+	assert.True(t, secondQueue.Full())
+
+	assert.Equal(t, 4, secondQueue.Front())
+	assert.Equal(t, 8, secondQueue.Back())
+
+	assert.True(t, secondQueue.Pop())
+	assert.True(t, secondQueue.Pop())
+	assert.True(t, secondQueue.Pop())
+	assert.True(t, secondQueue.Pop())
+
+	assert.Equal(t, 8, secondQueue.Front())
+	assert.Equal(t, 8, secondQueue.Back())
+
+	assert.True(t, secondQueue.Pop())
+
+	assert.True(t, secondQueue.Empty())
+
+	assert.True(t, secondQueue.Push(1))
+	assert.True(t, secondQueue.Push(2))
+	assert.True(t, secondQueue.Push(3))
+	assert.True(t, secondQueue.Push(4))
+	assert.True(t, secondQueue.Push(5))
+
+	assert.True(t, reflect.DeepEqual([]int{1, 2, 3, 4, 5}, secondQueue.values))
+	assert.Equal(t, 1, secondQueue.Front())
+	assert.Equal(t, 5, secondQueue.Back())
 }
