@@ -63,7 +63,7 @@ func (b *COWBuffer) Update(index int, value byte) bool {
 }
 
 func (b *COWBuffer) String() string {
-	if b.data == nil {
+	if b.data == nil || len(b.data) == 0 {
 		return ""
 	}
 	return *(*string)(unsafe.Pointer(&b.data))
