@@ -34,13 +34,12 @@ func (b *COWBuffer) Close() {
 		return
 	}
 	*b.refs--
-	b.data = nil
 	b.refs = nil
 
 }
 
 func (b *COWBuffer) Update(index int, value byte) bool {
-	if b.data == nil {
+	if b.refs == nil {
 		return false
 	}
 	if index > len(b.data)-1 || index < 0 {
@@ -63,7 +62,7 @@ func (b *COWBuffer) Update(index int, value byte) bool {
 }
 
 func (b *COWBuffer) String() string {
-	if len(b.data) == 0 {
+	if b.refs == nil {
 		return ""
 	}
 	return unsafe.String(unsafe.SliceData(b.data), len(b.data))
