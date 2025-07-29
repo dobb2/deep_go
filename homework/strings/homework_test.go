@@ -11,27 +11,61 @@ import (
 type COWBuffer struct {
 	data []byte
 	refs *int
-	// need to implement
 }
 
 func NewCOWBuffer(data []byte) COWBuffer {
-	return COWBuffer{} // need to implement
+	return COWBuffer{
+		data: data,
+		refs: new(int),
+	}
 }
 
 func (b *COWBuffer) Clone() COWBuffer {
-	return COWBuffer{} // need to implement
+	*b.refs++
+
+	return COWBuffer{
+		data: b.data,
+		refs: b.refs,
+	}
 }
 
 func (b *COWBuffer) Close() {
-	// need to implement
+	if b.refs == nil {
+		return
+	}
+	*b.refs--
+	b.refs = nil
+
 }
 
 func (b *COWBuffer) Update(index int, value byte) bool {
-	return false // need to implement
+	if b.refs == nil {
+		return false
+	}
+	if index > len(b.data)-1 || index < 0 {
+		return false
+	}
+
+	if *b.refs == 0 {
+		b.data[index] = value
+	} else {
+		newData := make([]byte, len(b.data))
+		copy(newData, b.data)
+		b.data = newData
+
+		*b.refs--
+		b.refs = new(int)
+
+		b.data[index] = value
+	}
+	return true
 }
 
 func (b *COWBuffer) String() string {
-	return "" // need to implement
+	if b.refs == nil {
+		return ""
+	}
+	return unsafe.String(unsafe.SliceData(b.data), len(b.data))
 }
 
 func TestCOWBuffer(t *testing.T) {
@@ -62,6 +96,9 @@ func TestCOWBuffer(t *testing.T) {
 	assert.Equal(t, unsafe.SliceData(copy1.data), unsafe.SliceData(copy2.data))
 
 	copy1.Close()
+
+	assert.False(t, copy1.Update(2, 'g'))
+	assert.Equal(t, copy1.String(), "")
 
 	previous := copy2.data
 	copy2.Update(0, 'f')
