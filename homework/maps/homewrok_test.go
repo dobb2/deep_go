@@ -10,31 +10,140 @@ import (
 // go test -v homework_test.go
 
 type OrderedMap struct {
-	// need to implement
+	baseMap map[int]int
+	node    *ElementTree
+}
+
+type ElementTree struct {
+	key   int
+	left  *ElementTree
+	right *ElementTree
 }
 
 func NewOrderedMap() OrderedMap {
-	return OrderedMap{} // need to implement
+	return OrderedMap{
+		baseMap: make(map[int]int),
+	}
 }
 
 func (m *OrderedMap) Insert(key, value int) {
-	// need to implement
+	x := m.node
+	var y *ElementTree
+
+	for x != nil {
+		if x.key == key {
+			break
+		}
+		y = x
+		if x.key < key {
+			x = x.right
+		} else {
+			x = x.left
+		}
+	}
+	newNode := new(ElementTree)
+	newNode.key = key
+	if y == nil {
+		m.node = newNode
+	} else {
+		if y.key < key {
+			y.right = newNode
+		} else {
+			y.left = newNode
+		}
+	}
+	m.baseMap[newNode.key] = value
 }
 
 func (m *OrderedMap) Erase(key int) {
-	// need to implement
+	x := m.node
+	var y *ElementTree
+	for x != nil {
+		if x.key == key {
+			break
+		}
+		y = x
+		if x.key < key {
+			x = x.right
+		} else {
+			x = x.left
+		}
+	}
+	if x == nil {
+		return
+	}
+	deleteKey := x.key
+	if x.right == nil {
+		if y == nil {
+			m.node = x.left
+		} else {
+			if y.left == x {
+				y.left = x.left
+			} else if y.right == x {
+				y.right = x.left
+			}
+		}
+	} else {
+		minRightSubtree := x.right
+		y = nil
+		for minRightSubtree.left != nil {
+			y = minRightSubtree
+			minRightSubtree = minRightSubtree.left
+		}
+		if y != nil {
+			y.left = minRightSubtree.right
+		} else {
+			x.right = minRightSubtree.right
+		}
+		x.key = minRightSubtree.key
+	}
+	delete(m.baseMap, deleteKey)
 }
 
 func (m *OrderedMap) Contains(key int) bool {
-	return false // need to implement
+	x := m.node
+	for x != nil {
+		if x.key == key {
+			return true
+		}
+		if x.key < key {
+			x = x.right
+		} else {
+			x = x.left
+		}
+	}
+	return false
 }
 
 func (m *OrderedMap) Size() int {
-	return 0 // need to implement
+	return len(m.baseMap)
 }
 
 func (m *OrderedMap) ForEach(action func(int, int)) {
-	// need to implement
+	if m.node == nil {
+		return
+	}
+
+	x := m.node
+
+	nodes := make([]*ElementTree, 0, len(m.baseMap))
+	for {
+		for x != nil {
+			nodes = append(nodes, x)
+			x = x.left
+		}
+
+		if len(nodes) == 0 {
+			break
+		}
+
+		minNode := nodes[len(nodes)-1]
+		nodes = nodes[:len(nodes)-1]
+
+		action(minNode.key, m.baseMap[minNode.key])
+
+		x = minNode.right
+	}
 }
 
 func TestCircularQueue(t *testing.T) {
