@@ -10,19 +10,20 @@ import (
 // go test -v homework_test.go
 
 type OrderedMap struct {
-	baseMap map[int]int
-	node    *ElementTree
+	node *ElementTree
+	size int
 }
 
 type ElementTree struct {
 	key   int
+	value int
 	left  *ElementTree
 	right *ElementTree
 }
 
 func NewOrderedMap() OrderedMap {
 	return OrderedMap{
-		baseMap: make(map[int]int),
+		size: 0,
 	}
 }
 
@@ -43,6 +44,7 @@ func (m *OrderedMap) Insert(key, value int) {
 	}
 	newNode := new(ElementTree)
 	newNode.key = key
+	newNode.value = value
 	if y == nil {
 		m.node = newNode
 	} else {
@@ -52,7 +54,7 @@ func (m *OrderedMap) Insert(key, value int) {
 			y.left = newNode
 		}
 	}
-	m.baseMap[newNode.key] = value
+	m.size++
 }
 
 func (m *OrderedMap) Erase(key int) {
@@ -72,7 +74,6 @@ func (m *OrderedMap) Erase(key int) {
 	if x == nil {
 		return
 	}
-	deleteKey := x.key
 	if x.right == nil {
 		if y == nil {
 			m.node = x.left
@@ -97,7 +98,7 @@ func (m *OrderedMap) Erase(key int) {
 		}
 		x.key = minRightSubtree.key
 	}
-	delete(m.baseMap, deleteKey)
+	m.size--
 }
 
 func (m *OrderedMap) Contains(key int) bool {
@@ -116,7 +117,7 @@ func (m *OrderedMap) Contains(key int) bool {
 }
 
 func (m *OrderedMap) Size() int {
-	return len(m.baseMap)
+	return m.size
 }
 
 func (m *OrderedMap) ForEach(action func(int, int)) {
@@ -126,7 +127,7 @@ func (m *OrderedMap) ForEach(action func(int, int)) {
 
 	x := m.node
 
-	nodes := make([]*ElementTree, 0, len(m.baseMap))
+	nodes := make([]*ElementTree, 0, m.size)
 	for {
 		for x != nil {
 			nodes = append(nodes, x)
@@ -140,7 +141,7 @@ func (m *OrderedMap) ForEach(action func(int, int)) {
 		minNode := nodes[len(nodes)-1]
 		nodes = nodes[:len(nodes)-1]
 
-		action(minNode.key, m.baseMap[minNode.key])
+		action(minNode.key, minNode.value)
 
 		x = minNode.right
 	}
