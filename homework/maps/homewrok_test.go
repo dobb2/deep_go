@@ -28,123 +28,96 @@ func NewOrderedMap() OrderedMap {
 }
 
 func (m *OrderedMap) Insert(key, value int) {
-	x := m.node
-	var y *ElementTree
-
-	for x != nil {
-		if x.key == key {
-			break
-		}
-		y = x
-		if x.key < key {
-			x = x.right
-		} else {
-			x = x.left
-		}
-	}
-	newNode := new(ElementTree)
-	newNode.key = key
-	newNode.value = value
-	if y == nil {
-		m.node = newNode
-	} else {
-		if y.key < key {
-			y.right = newNode
-		} else {
-			y.left = newNode
-		}
-	}
+	m.node = m.insert(m.node, key, value)
 	m.size++
 }
 
-func (m *OrderedMap) Erase(key int) {
-	x := m.node
-	var y *ElementTree
-	for x != nil {
-		if x.key == key {
-			break
+func (m *OrderedMap) insert(node *ElementTree, key, value int) *ElementTree {
+	if node == nil {
+		return &ElementTree{
+			key:   key,
+			value: value,
 		}
-		y = x
-		if x.key < key {
-			x = x.right
-		} else {
-			x = x.left
-		}
+	} else if key < node.key {
+		node.left = m.insert(node.left, key, value)
+	} else if key > node.key {
+		node.right = m.insert(node.right, key, value)
 	}
-	if x == nil {
-		return
+
+	node.value = value
+	return node
+}
+
+func (m *OrderedMap) min(node *ElementTree) (int, int) {
+	if node.left == nil {
+		return node.key, node.value
 	}
-	if x.right == nil {
-		if y == nil {
-			m.node = x.left
-		} else {
-			if y.left == x {
-				y.left = x.left
-			} else if y.right == x {
-				y.right = x.left
-			}
-		}
+	return m.min(node.left)
+}
+
+func (m *OrderedMap) delete(node *ElementTree, key int) *ElementTree {
+	if node == nil {
+		return node
+	}
+	if key < node.key {
+		node.left = m.delete(node.left, key)
+	} else if key > node.key {
+		node.right = m.delete(node.right, key)
+	} else if node.left != nil && node.right != nil {
+		node.key, node.value = m.min(node.right)
+		node.right = m.delete(node.right, node.key)
 	} else {
-		minRightSubtree := x.right
-		y = nil
-		for minRightSubtree.left != nil {
-			y = minRightSubtree
-			minRightSubtree = minRightSubtree.left
-		}
-		if y != nil {
-			y.left = minRightSubtree.right
+		if node.left != nil {
+			node = node.left
+		} else if node.right != nil {
+			node = node.right
 		} else {
-			x.right = minRightSubtree.right
+			node = nil
 		}
-		x.key = minRightSubtree.key
 	}
+	return node
+}
+
+func (m *OrderedMap) Erase(key int) {
+	m.node = m.delete(m.node, key)
 	m.size--
 }
 
 func (m *OrderedMap) Contains(key int) bool {
-	x := m.node
-	for x != nil {
-		if x.key == key {
-			return true
-		}
-		if x.key < key {
-			x = x.right
-		} else {
-			x = x.left
-		}
+	if m.search(m.node, key) != nil {
+		return true
 	}
 	return false
+}
+
+func (m *OrderedMap) search(node *ElementTree, key int) *ElementTree {
+	if node == nil {
+		return node
+	}
+	if node.key == key {
+		return node
+	}
+	if key < node.key {
+		return m.search(node.left, key)
+	} else {
+		return m.search(node.right, key)
+	}
 }
 
 func (m *OrderedMap) Size() int {
 	return m.size
 }
 
+func (m *OrderedMap) inorderForEach(node *ElementTree, action func(int, int)) {
+	if node != nil {
+		m.inorderForEach(node.left, action)
+		action(node.key, node.value)
+		m.inorderForEach(node.right, action)
+	}
+}
+
 func (m *OrderedMap) ForEach(action func(int, int)) {
-	if m.node == nil {
-		return
-	}
-
-	x := m.node
-
-	nodes := make([]*ElementTree, 0, m.size)
-	for {
-		for x != nil {
-			nodes = append(nodes, x)
-			x = x.left
-		}
-
-		if len(nodes) == 0 {
-			break
-		}
-
-		minNode := nodes[len(nodes)-1]
-		nodes = nodes[:len(nodes)-1]
-
-		action(minNode.key, minNode.value)
-
-		x = minNode.right
-	}
+	m.inorderForEach(m.node, action)
 }
 
 func TestCircularQueue(t *testing.T) {
