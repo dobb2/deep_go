@@ -7,12 +7,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Map(data []int, action func(int) int) (actionData []int) {
+func Map(data []int, action func(int) int) (mapData []int) {
 	if data != nil {
-		actionData = make([]int, 0, len(data))
+		mapData = make([]int, 0, len(data))
 	}
-	for _, value := range data {
-		actionData = append(actionData, action(value))
+	for i := 0; i < len(data); i++ {
+		mapData = append(mapData, action(data[i]))
 	}
 	return
 }
