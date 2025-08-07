@@ -8,9 +8,16 @@ import (
 )
 
 func Map(data []int, action func(int) int) (mapData []int) {
-	if data != nil {
-		mapData = make([]int, 0, len(data))
+	if data == nil {
+		return
 	}
+
+	if len(data) == 0 {
+		mapData = []int{}
+		return
+	}
+
+	mapData = make([]int, 0, len(data))
 	for i := 0; i < len(data); i++ {
 		mapData = append(mapData, action(data[i]))
 	}
@@ -18,10 +25,16 @@ func Map(data []int, action func(int) int) (mapData []int) {
 }
 
 func Filter(data []int, action func(int) bool) (filterData []int) {
-	if data != nil {
-		filterData = make([]int, 0, len(data))
+	if data == nil {
+		return
 	}
 
+	if len(data) == 0 {
+		filterData = []int{}
+		return
+	}
+
+	filterData = make([]int, 0, len(data))
 	for i := 0; i < len(data); i++ {
 		if action(data[i]) {
 			filterData = append(filterData, data[i])
