@@ -10,31 +10,114 @@ import (
 // go test -v homework_test.go
 
 type OrderedMap struct {
-	// need to implement
+	node *ElementTree
+	size int
+}
+
+type ElementTree struct {
+	key   int
+	value int
+	left  *ElementTree
+	right *ElementTree
 }
 
 func NewOrderedMap() OrderedMap {
-	return OrderedMap{} // need to implement
+	return OrderedMap{
+		size: 0,
+	}
 }
 
 func (m *OrderedMap) Insert(key, value int) {
-	// need to implement
+	m.node = m.insert(m.node, key, value)
+	m.size++
+}
+
+func (m *OrderedMap) insert(node *ElementTree, key, value int) *ElementTree {
+	if node == nil {
+		return &ElementTree{
+			key:   key,
+			value: value,
+		}
+	} else if key < node.key {
+		node.left = m.insert(node.left, key, value)
+	} else if key > node.key {
+		node.right = m.insert(node.right, key, value)
+	}
+
+	node.value = value
+	return node
+}
+
+func (m *OrderedMap) min(node *ElementTree) (int, int) {
+	if node.left == nil {
+		return node.key, node.value
+	}
+	return m.min(node.left)
+}
+
+func (m *OrderedMap) delete(node *ElementTree, key int) *ElementTree {
+	if node == nil {
+		return node
+	}
+	if key < node.key {
+		node.left = m.delete(node.left, key)
+	} else if key > node.key {
+		node.right = m.delete(node.right, key)
+	} else if node.left != nil && node.right != nil {
+		node.key, node.value = m.min(node.right)
+		node.right = m.delete(node.right, node.key)
+	} else {
+		if node.left != nil {
+			node = node.left
+		} else if node.right != nil {
+			node = node.right
+		} else {
+			node = nil
+		}
+	}
+	return node
 }
 
 func (m *OrderedMap) Erase(key int) {
-	// need to implement
+	m.node = m.delete(m.node, key)
+	m.size--
 }
 
 func (m *OrderedMap) Contains(key int) bool {
-	return false // need to implement
+	if m.search(m.node, key) != nil {
+		return true
+	}
+	return false
+}
+
+func (m *OrderedMap) search(node *ElementTree, key int) *ElementTree {
+	if node == nil {
+		return node
+	}
+	if node.key == key {
+		return node
+	}
+	if key < node.key {
+		return m.search(node.left, key)
+	} else {
+		return m.search(node.right, key)
+	}
 }
 
 func (m *OrderedMap) Size() int {
-	return 0 // need to implement
+	return m.size
+}
+
+func (m *OrderedMap) inorderForEach(node *ElementTree, action func(int, int)) {
+	if node != nil {
+		m.inorderForEach(node.left, action)
+		action(node.key, node.value)
+		m.inorderForEach(node.right, action)
+	}
 }
 
 func (m *OrderedMap) ForEach(action func(int, int)) {
-	// need to implement
+	m.inorderForEach(m.node, action)
 }
 
 func TestCircularQueue(t *testing.T) {
