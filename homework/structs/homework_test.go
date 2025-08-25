@@ -30,17 +30,23 @@ func WithGold(gold int) func(*GamePerson) {
 	}
 }
 
+const (
+	maskForFirstEightBitsOfNumber   = 0b1111_1111
+	offsetToObtainTheRemainingBits  = 8
+	offsetToOccupyTheRemaining4Bits = 4
+)
+
 func WithMana(mana int) func(*GamePerson) {
 	return func(person *GamePerson) {
-		person.manaHealth[0] = byte(mana & 0b1111_1111)
-		person.manaHealth[1] |= byte(mana >> 8)
+		person.manaHealth[0] = byte(mana & maskForFirstEightBitsOfNumber)
+		person.manaHealth[1] |= byte(mana >> offsetToObtainTheRemainingBits)
 	}
 }
 
 func WithHealth(health int) func(*GamePerson) {
 	return func(person *GamePerson) {
-		person.manaHealth[2] = byte(health & 0b1111_1111)
-		person.manaHealth[1] |= byte(health>>8) << 4
+		person.manaHealth[2] = byte(health & maskForFirstEightBitsOfNumber)
+		person.manaHealth[1] |= byte(health>>offsetToObtainTheRemainingBits) << offsetToOccupyTheRemaining4Bits
 	}
 }
 
