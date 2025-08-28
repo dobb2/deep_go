@@ -16,9 +16,11 @@ type MultiError struct {
 
 func (e *MultiError) Error() string {
 	var resultErr string
-	if len(e.errors) != 0 {
-		resultErr += fmt.Sprintf("%d errors occured:\n", len(e.errors))
+	if len(e.errors) == 0 {
+		return resultErr
 	}
+
+	resultErr += fmt.Sprintf("%d errors occured:\n", len(e.errors))
 
 	if len(e.errors) == 1 {
 		return e.errors[0].Error()
