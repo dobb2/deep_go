@@ -83,4 +83,10 @@ func TestTrace(t *testing.T) {
 	}
 
 	assert.True(t, reflect.DeepEqual(expectedPointers, pointers))
+
+	println(&heapPointer1)
+	println(&heapPointer2)
+	println(&heapPointer3)
+	println(&heapPointer4)
+
 }
