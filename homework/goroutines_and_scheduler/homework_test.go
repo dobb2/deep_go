@@ -12,25 +12,75 @@ type Task struct {
 }
 
 type Scheduler struct {
-	// need to implement
+	heap []Task
+}
+
+func (s *Scheduler) Parent(i int) int {
+	return (i - 1) / 2
+}
+
+func (s *Scheduler) LeftChild(i int) int {
+	return 2*i + 1
+}
+
+func (s *Scheduler) RightChild(i int) int {
+	return 2*i + 2
+}
+
+func (s *Scheduler) SiftUp(i int) {
+	for i > 0 && s.heap[s.Parent(i)].Priority < s.heap[i].Priority {
+		s.heap[i], s.heap[s.Parent(i)] = s.heap[s.Parent(i)], s.heap[i]
+		i = s.Parent(i)
+	}
+}
+
+func (s *Scheduler) SiftDown(i int) {
+	minIndex := i
+	left := s.LeftChild(i)
+	if left <= len(s.heap)-1 && s.heap[left].Priority > s.heap[minIndex].Priority {
+		minIndex = left
+	}
+	right := s.RightChild(i)
+	if right <= len(s.heap)-1 && s.heap[right].Priority > s.heap[minIndex].Priority {
+		minIndex = right
+	}
+	if i != minIndex {
+		s.heap[i], s.heap[minIndex] = s.heap[minIndex], s.heap[i]
+		s.SiftDown(minIndex)
+	}
 }
 
 func NewScheduler() Scheduler {
-	// need to implement
-	return Scheduler{}
+	return Scheduler{heap: make([]Task, 0, 0)}
 }
 
 func (s *Scheduler) AddTask(task Task) {
-	// need to implement
+	s.heap = append(s.heap, task)
+
+	s.SiftUp(len(s.heap) - 1)
 }
 
 func (s *Scheduler) ChangeTaskPriority(taskID int, newPriority int) {
-	// need to implement
+	for i, task := range s.heap {
+		if task.Identifier == taskID {
+			oldPriority := task.Priority
+			s.heap[i].Priority = newPriority
+			if newPriority > oldPriority {
+				s.SiftUp(i)
+			} else {
+				s.SiftDown(i)
+			}
+			return
+		}
+	}
 }
 
 func (s *Scheduler) GetTask() Task {
-	// need to implement
-	return Task{}
+	task := s.heap[0]
+	s.heap[0] = s.heap[len(s.heap)-1]
+	s.heap = s.heap[:len(s.heap)-1]
+	s.SiftDown(0)
+	return task
 }
 
 func TestTrace(t *testing.T) {
@@ -54,6 +104,7 @@ func TestTrace(t *testing.T) {
 	assert.Equal(t, task4, task)
 
 	scheduler.ChangeTaskPriority(1, 100)
+	task1.Priority = 100
 
 	task = scheduler.GetTask()
 	assert.Equal(t, task1, task)
