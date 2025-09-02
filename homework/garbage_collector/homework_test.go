@@ -1,18 +1,42 @@
 package main
 
 import (
+	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
 	"unsafe"
-
-	"github.com/stretchr/testify/assert"
 )
 
 // go test -v homework_test.go
 
 func Trace(stacks [][]uintptr) []uintptr {
-	// need to implement
-	return nil
+	visited := make(map[uintptr]bool)
+
+	result := make([]uintptr, 0)
+
+	var trace func(uintptr)
+	trace = func(ptr uintptr) {
+		if visited[ptr] {
+			return
+		}
+
+		visited[ptr] = true
+		result = append(result, ptr)
+
+		if *(*uintptr)(unsafe.Pointer(ptr)) != 0 {
+			trace(*(*uintptr)(unsafe.Pointer(ptr)))
+		}
+	}
+
+	for _, stack := range stacks {
+		for _, ptr := range stack {
+			if ptr != 0 {
+				trace(ptr)
+			}
+		}
+	}
+
+	return result
 }
 
 func TestTrace(t *testing.T) {
@@ -49,9 +73,9 @@ func TestTrace(t *testing.T) {
 	pointers := Trace(stacks)
 	expectedPointers := []uintptr{
 		uintptr(unsafe.Pointer(&heapPointer1)),
+		uintptr(unsafe.Pointer(&heapObjects[1])),
 		uintptr(unsafe.Pointer(&heapObjects[0])),
 		uintptr(unsafe.Pointer(&heapPointer2)),
-		uintptr(unsafe.Pointer(&heapObjects[1])),
 		uintptr(unsafe.Pointer(&heapObjects[2])),
 		uintptr(unsafe.Pointer(&heapPointer4)),
 		uintptr(unsafe.Pointer(&heapPointer3)),
@@ -59,4 +83,10 @@ func TestTrace(t *testing.T) {
 	}
 
 	assert.True(t, reflect.DeepEqual(expectedPointers, pointers))
+
+	println(&heapPointer1)
+	println(&heapPointer2)
+	println(&heapPointer3)
+	println(&heapPointer4)
+
 }
